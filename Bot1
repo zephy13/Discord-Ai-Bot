@@ -1,0 +1,53 @@
+import discord
+import openai
+import asyncio
+
+TOKEN = 'Your Discord Tokem'
+OPENAI_API_KEY = 'Your Open Ai Key'
+CHANNEL_ID = Your Channel Id # Replace with the desired channel ID
+
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
+openai.api_key = OPENAI_API_KEY
+
+def get_openai_response(prompt):
+    try:
+        response = openai.Completion.create(
+            engine='text-davinci-003',
+            prompt=prompt,
+            max_tokens=1500,
+            temperature=0.5,
+            n=1,
+            stop=None,
+            top_p=1,
+            frequency_penalty=1,
+            presence_penalty=0
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        print(f'Error in OpenAI API request: {e}')
+        return 'Sorry, I encountered an error while processing your request.'
+
+@client.event
+async def on_ready():
+    print(f'Logged in as {client.user.name}')
+
+@client.event
+async def on_message(message):
+    if message.author == client.user or message.channel.id != CHANNEL_ID:
+        return
+
+    command = message.content.strip()
+
+    # Set typing status
+    async with message.channel.typing():
+        # Simulate processing time
+        await asyncio.sleep(2)
+
+        response = get_openai_response(command)
+
+        # Wrap the response in a code block
+        response_with_codeblock = f'```{response}```'
+        await message.channel.send(response_with_codeblock)
+
+client.run(TOKEN)
